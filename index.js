@@ -1,42 +1,26 @@
-const http = require("http");
-const example = require('./example')
-const moment = require('moment')
+const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require('fs')
+const multer = require('multer');
 
+const routers = require('./src/routers/index')
+const log = require('./src/middleware/log');
+const notFound = require('./src/middleware/404');
+const errorHandling = require('./src/middleware/errorHandling');
+
+const app = express();
 const port = 8080;
-const hostName = "127.0.0.1";
 
-const server = http.createServer((req, res) => {
-  const url = req.url;
+// app.use(bodyParser.json());
+app.use(log);
+app.use(routers);
+app.use(errorHandling);
+app.use(notFound);
 
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/json");
-  // res.write("hello world");
-  if (url === "/sekolah") {
-    res.write(
-      JSON.stringify({
-        status: "success",
-        message: "response success",
-        data: {
-          pesan: "ini adalah route /sekolah",
-            smk: example.smk,
-            hari: moment().calendar(),
-        },
-      })
-    );
-  } else {
-    res.write(
-      JSON.stringify({
-        status: "success",
-        message: "response success",
-        data: {
-          pesan: "ini bukan route /sekolah",
-        },
-      })
-    );
-  }
-  res.end();
-});
+// app.listen(port, () =>
+//   console.log(`Server berjalan di http://localhost:${port}`)
+// );
 
-server.listen(port, hostName, () => {
-  console.log(`http://${hostName}:${port}/`);
+app.listen(port, function () {
+  return console.log(`Server berjalan di http://localhost:${port}`);
 });
