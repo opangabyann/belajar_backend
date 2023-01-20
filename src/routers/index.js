@@ -5,6 +5,8 @@ const authMiddleware = require('../middleware/auth');
 
 const routers = express.Router();
 const multer = require('multer');
+const uploadSingle = require('../storage/fileuploadsingle');
+const uploadMulti = require('../storage/fileuploadMulti');
 
 // const imageFilter = (req, file, cb) => {
 //   if (!file.originalname.match(/\.(jpg/jpeg/png/gif)$/)) {
@@ -19,7 +21,9 @@ const upload = multer({
 const multipleUpload = multer({ dest: 'public' });
 
 // =========================== GET ========================= //
-routers.get('/', authMiddleware, (req, res) => {
+routers.use(authMiddleware)
+
+routers.get('/', (req, res) => {
   res.send('Hello world');
 });
 
@@ -67,6 +71,16 @@ routers.get('/siswa/:nama', (req, res) => {
 });
 
 // =========================== POST ========================= //
+routers.post("/user/create", (req,res)=> {
+
+  const payload = req.body
+  res.json({
+    status : "Success",
+    msg : "Latihan request body",
+    payload : payload
+  })
+})
+
 routers.post('/', authMiddleware, (req, res) => {
     res.send('Hello world');
   });
@@ -90,46 +104,73 @@ routers.post('/', authMiddleware, (req, res) => {
       },
     });
   });
+
+  routers.post("/upload/multi", uploadMulti, (req, res) => {
+    const files = req.files;
+    const url = files.map((file, index) =>{
+      return `${req.protocol}://${req.get('host')}/${req.files[index].filename}`
+    })
   
-  routers.post('/upload', upload.single('file'), (req, res) => {
-    const file = req.file;
-  
-    if (file) {
-      const target = path.join(__dirname, 'public', file.originalname);
-      fs.renameSync(file.path, target);
-      url = `${req.protocol}://${req.get('host')}/${file.originalname}`;
-      console.log('url =>', url);
-  
-      res.send({
-        status: 200,
-        message: 'Success, File uploaded',
-        url: url,
-      });
-    } else {
-      res.send({
-        status: 400,
-        message: 'Error, File not found',
-      });
-    }
+    res.send({
+      status: 200,
+      message: 'Upload Success',
+      data: {
+        file: req.files,
+        fileURL: [
+          url
+        ]
+      },
+    });
   });
-  routers.post(
-    '/multipleUpload',
-    multipleUpload.array('file', 10),
-    (req, res) => {
-      const files = req.file;
+
+  routers.post("/upload/single", uploadSingle , (req,res)=>{
+    res.send({
+      status : "Success",
+      msg : "Upload Success",
+      file : req.file,
+      fileUrl : `${req.protocol}://${req.get("host")}/${req.file.filename}`
+    })
+  })
   
-      files.map((file) => {
-        if (file) {
-          const target = path.join(__dirname, 'public', file.originalname);
-          fs.renameSync(file.path, target);
-        }
-      });
+  // routers.post('/upload', upload.single('file'), (req, res) => {
+  //   const file = req.file;
   
-      res.send({
-        status: 200,
-        message: 'Success, File uploaded',
-      });
-    }
-  );
+  //   if (file) {
+  //     const target = path.join(__dirname, 'public', file.originalname);
+  //     fs.renameSync(file.path, target);
+  //     url = `${req.protocol}://${req.get('host')}/${file.originalname}`;
+  //     console.log('url =>', url);
+  
+  //     res.send({
+  //       status: 200,
+  //       message: 'Success, File uploaded',
+  //       url: url,
+  //     });
+  //   } else {
+  //     res.send({
+  //       status: 400,
+  //       message: 'Error, File not found',
+  //     });
+  //   }
+  // });
+  // routers.post(
+  //   '/multipleUpload',
+  //   multipleUpload.array('file', 10),
+  //   (req, res) => {
+  //     const files = req.file;
+  
+  //     files.map((file) => {
+  //       if (file) {
+  //         const target = path.join(__dirname, 'public', file.originalname);
+  //         fs.renameSync(file.path, target);
+  //       }
+  //     });
+  
+  //     res.send({
+  //       status: 200,
+  //       message: 'Success, File uploaded',
+  //     });
+  //   }
+  // );
   
   module.exports = routers;
