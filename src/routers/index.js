@@ -1,176 +1,47 @@
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const authMiddleware = require('../middleware/auth');
+const { getListproduk, createProduk, getDetailProdukById } = require('../controllers/Produkcontroller');
+const { getListuser, createUser, getDetailById, getDetailByParams, updateUser, deleteUser, updatePassword } = require('../controllers/UserController');
+const router = express.Router();
+const validationResultMiddleware = require('../middleware/validationResultMiddleware');
+const userValidator = require('../validator/userValidator')
+const produkValidator = require('../validator/produkValidator');
+const { register, login, lupaPassword, resetPassword } = require('../controllers/authControllers');
+const jwtValidateMiddleware = require('../middleware/jwtValidatemiddleware');
+const { createArtikel, getListArtikel, updateArtikel, deleteArtikel, createArtikelBulk, createArtikelmulti, deleteArtikelMulti } = require('../controllers/ArtikelContoller');
 
-const routers = express.Router();
-const multer = require('multer');
-const uploadSingle = require('../storage/fileuploadsingle');
-const uploadMulti = require('../storage/fileuploadMulti');
+//auth
+router.post('/register',register)
+router.post('/login',login)
+router.post('/lupa-password', lupaPassword)
+router.post('/reset-password/:userId/:token',resetPassword)
 
-// const imageFilter = (req, file, cb) => {
-//   if (!file.originalname.match(/\.(jpg/jpeg/png/gif)$/)) {
-//     return cb(null, false)
-//   }
-//   cb(null, true)
-// }
-const upload = multer({
-  dest: 'public',
-  //  fileFilter: imageFilter
-});
-const multipleUpload = multer({ dest: 'public' });
+router.use(jwtValidateMiddleware)
+//user
+router.put('/update-password', userValidator.updatePassword,validationResultMiddleware,updatePassword)
+router.get('/user/list',getListuser)
+router.post('/user/create', userValidator.createUserValidator,validationResultMiddleware,createUser )
 
-// =========================== GET ========================= //
-routers.use(authMiddleware)
+router.get('/user/detail/:id', getDetailById)
 
-routers.get('/', (req, res) => {
-  res.send('Hello world');
-});
+router.get('/user/list/:email', getDetailByParams)
+router.put('/user/update/:id',userValidator.updateUserValidator,validationResultMiddleware,updateUser)
+router.delete('/user/delete/:id',deleteUser)
 
-routers.get('/user', (req, res) => {
-  res.send({
-    status: 200,
-    message: 'Success',
-    data: {
-      nama: 'Hilmi',
-    },
-  });
-});
-routers.get('/absensi/:nama', (req, res) => {
-  let { status, dariTanggal, sampaiTanggal } = req.query;
-  let { nama } = req.params;
-  res.send({
-    status: 200,
-    message: 'Success',
-    data: {
-      nama: nama,
-      status: status,
-      dari_tanggal: dariTanggal,
-      sampai_tanggal: sampaiTanggal,
-    },
-  });
-});
-routers.get('/siswa/:nama', (req, res) => {
-  // let nama = req.params.nama;
-  let { nama } = req.params;
-  let { angkatan, sekolah } = req.query;
+//produk
+router.get('/produk/list',getListproduk )
 
-  console.log('params =>', req.params);
-  console.log('query =>', req.query);
+router.post('/produk/create',produkValidator.createProdukValidator,validationResultMiddleware,createProduk)
+router.get('/produk/detail/:id',getDetailProdukById)
 
-  res.send({
-    status: 200,
-    message: 'Siswa ditemukan',
-    data: {
-      nama: `${nama}`,
-      kelas: `${req.query.kelas}`,
-      angkatan: `${angkatan}`,
-      sekolah: `${sekolah}`,
-    },
-  });
-});
+//artikel
+router.get('/artikel',getListArtikel)
+router.post("/artikel/create" , createArtikel)
+router.post("/artikel/create/bulk" , createArtikelBulk)
+router.post("/artikel/create/multi" , createArtikelmulti)
+router.put('/artikel/update/:id',updateArtikel)
+router.delete('/artikel/delete/:id',deleteArtikel)
+router.delete('/delete/multi',deleteArtikelMulti)
 
-// =========================== POST ========================= //
-routers.post("/user/create", (req,res)=> {
 
-  const payload = req.body
-  res.json({
-    status : "Success",
-    msg : "Latihan request body",
-    payload : payload
-  })
-})
 
-routers.post('/', authMiddleware, (req, res) => {
-    res.send('Hello world');
-  });
-  routers.get('/user', (req, res) => {
-    res.send({
-      status: 200,
-      message: 'Success',
-      data: {
-        nama: 'Hilmi',
-      },
-    });
-  });
-  routers.post('/user', (req, res) => {
-    const { nama, kelas } = req.body;
-    res.send({
-      status: 200,
-      message: 'Success',
-      data: {
-        nama: nama,
-        kelas: kelas,
-      },
-    });
-  });
-
-  routers.post("/upload/multi", uploadMulti, (req, res) => {
-    const files = req.files;
-    const url = files.map((file, index) =>{
-      return `${req.protocol}://${req.get('host')}/${req.files[index].filename}`
-    })
-  
-    res.send({
-      status: 200,
-      message: 'Upload Success',
-      data: {
-        file: req.files,
-        fileURL: [
-          url
-        ]
-      },
-    });
-  });
-
-  routers.post("/upload/single", uploadSingle , (req,res)=>{
-    res.send({
-      status : "Success",
-      msg : "Upload Success",
-      file : req.file,
-      fileUrl : `${req.protocol}://${req.get("host")}/${req.file.filename}`
-    })
-  })
-  
-  // routers.post('/upload', upload.single('file'), (req, res) => {
-  //   const file = req.file;
-  
-  //   if (file) {
-  //     const target = path.join(__dirname, 'public', file.originalname);
-  //     fs.renameSync(file.path, target);
-  //     url = `${req.protocol}://${req.get('host')}/${file.originalname}`;
-  //     console.log('url =>', url);
-  
-  //     res.send({
-  //       status: 200,
-  //       message: 'Success, File uploaded',
-  //       url: url,
-  //     });
-  //   } else {
-  //     res.send({
-  //       status: 400,
-  //       message: 'Error, File not found',
-  //     });
-  //   }
-  // });
-  // routers.post(
-  //   '/multipleUpload',
-  //   multipleUpload.array('file', 10),
-  //   (req, res) => {
-  //     const files = req.file;
-  
-  //     files.map((file) => {
-  //       if (file) {
-  //         const target = path.join(__dirname, 'public', file.originalname);
-  //         fs.renameSync(file.path, target);
-  //       }
-  //     });
-  
-  //     res.send({
-  //       status: 200,
-  //       message: 'Success, File uploaded',
-  //     });
-  //   }
-  // );
-  
-  module.exports = routers;
+module.exports = router
