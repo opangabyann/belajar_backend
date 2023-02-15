@@ -22,6 +22,18 @@ const createUserValidator = [
         }
       });
     }),
+
+    check("password")
+    .isLength({
+      min : 8
+    })
+    .withMessage("password minimal 8 digit"),
+
+    check("role")
+    .isLength({
+      min:1
+    })
+    .withMessage("role wajib diisi"),
 ];
 
 const updateUserValidator = [

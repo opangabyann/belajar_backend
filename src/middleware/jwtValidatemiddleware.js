@@ -18,6 +18,7 @@ const jwtValidateMiddleware = (req,res,next)=>{
             req.id = decoded.id,
             req.nama = decoded.nama,
             req.email = decoded.email,
+            req.role = decoded.role
             next()
         }
         // return res.json({

@@ -7,40 +7,22 @@ const userValidator = require('../validator/userValidator')
 const produkValidator = require('../validator/produkValidator');
 const { register, login, lupaPassword, resetPassword } = require('../controllers/authControllers');
 const jwtValidateMiddleware = require('../middleware/jwtValidatemiddleware');
-const { createArtikel, getListArtikel, updateArtikel, deleteArtikel, createArtikelBulk, createArtikelmulti, deleteArtikelMulti } = require('../controllers/ArtikelContoller');
+
+const { createMateriMulti, createMateriBulk, updateMateri, multiDelete, getListMateri, getMateriGuru } = require('../controllers/materiController');
 
 //auth
-router.post('/register',register)
+router.post('/register',userValidator.createUserValidator,validationResultMiddleware,register)
 router.post('/login',login)
-router.post('/lupa-password', lupaPassword)
-router.post('/reset-password/:userId/:token',resetPassword)
+
 
 router.use(jwtValidateMiddleware)
-//user
-router.put('/update-password', userValidator.updatePassword,validationResultMiddleware,updatePassword)
 router.get('/user/list',getListuser)
-router.post('/user/create', userValidator.createUserValidator,validationResultMiddleware,createUser )
+router.get('/materi/list',getListMateri)
+router.get('/materi/guru',getMateriGuru)
+router.post('/materi/create/multi',createMateriMulti)
+router.put('/materi/update/:id',updateMateri)
+router.delete('/materi/delete/multi',multiDelete)
 
-router.get('/user/detail/:id', getDetailById)
-
-router.get('/user/list/:email', getDetailByParams)
-router.put('/user/update/:id',userValidator.updateUserValidator,validationResultMiddleware,updateUser)
-router.delete('/user/delete/:id',deleteUser)
-
-//produk
-router.get('/produk/list',getListproduk )
-
-router.post('/produk/create',produkValidator.createProdukValidator,validationResultMiddleware,createProduk)
-router.get('/produk/detail/:id',getDetailProdukById)
-
-//artikel
-router.get('/artikel',getListArtikel)
-router.post("/artikel/create" , createArtikel)
-router.post("/artikel/create/bulk" , createArtikelBulk)
-router.post("/artikel/create/multi" , createArtikelmulti)
-router.put('/artikel/update/:id',updateArtikel)
-router.delete('/artikel/delete/:id',deleteArtikel)
-router.delete('/delete/multi',deleteArtikelMulti)
 
 
 

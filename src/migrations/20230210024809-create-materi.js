@@ -2,29 +2,38 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('passwords', {
+    await queryInterface.createTable('materis', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userId: {
+      mataPelajaran: {
+        type: Sequelize.STRING,
+        allowNull : false,
+
+      },
+      kelas: {
+        type: Sequelize.STRING,
+        allowNull : false,
+
+      },
+      materi: {
+        type: Sequelize.STRING,
+        allowNull : false,
+        
+      },
+      userID: {
         type: Sequelize.INTEGER,
+        allowNull : false,
         onDelete :  'CASCADE',
         onUpdate : 'CASCADE',
         references : {
           model : "users",
           key : "id",
-          as : "userId"
+          as : "userID"
         }
-      },
-      token: {
-        type: Sequelize.STRING,
-        allowNull : false
-      },
-      expireDate: {
-        type: Sequelize.DATE
       },
       createdAt: {
         allowNull: false,
@@ -37,6 +46,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('passwords');
+    await queryInterface.dropTable('materis');
   }
 };

@@ -10,12 +10,13 @@ const sendEmailHandle = require("../mail/indegs");
 async function register(req, res) {
   try {
     const payload = req.body;
-    const { nama, email, password } = payload;
+    const { nama, email, password ,role} = payload;
     let hashPassword = await bcrypt.hashSync(password, 10);
     await UserModel.create({
       nama,
       email,
       password: hashPassword,
+      role
     });
     res.json({
       status: "Success",
@@ -69,6 +70,7 @@ async function login(req, res) {
         id: user?.id,
         email: user?.email,
         nama: user?.nama,
+        role : user?.role
       },
       process.env.JWT_SECRET,
       {
