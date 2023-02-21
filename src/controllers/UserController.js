@@ -1,9 +1,36 @@
 const UserModel = require("../models").user;
+const model = require("../models")
 const bcrypt = require('bcrypt');
+const { Op } = require("sequelize");
+// const { check } = require("express-validator");
+// const {checkQuery} = require("../utils")
 
 async function getListuser(req, res) {
+  const {mapel} = req.query
   try {
-    const user = await UserModel.findAll();
+    const user = await UserModel.findAll({
+      include : [
+        {
+          model : model.identitas,
+          require : true,
+          as : 'identitas',
+          attributes : ["golonganDarah","alamat"]
+        },
+        {
+          model : model.nilai,
+          require : true,
+          as : 'nilai',
+          attributes : ["mapel","nilai"],
+          // where : {
+          //   ...(checkQuery(mapel) && {
+          //     mapel : {
+          //       [Op.substring] : mapel
+          //     }
+          //   })
+          // }
+        }
+      ]
+    });
     res.json({
       status: "Success",
       msg: "Data user ditemukan",
@@ -45,7 +72,18 @@ async function getDetailById(req, res) {
   try {
     const id = req.params.id;
 
-    const user = await UserModel.findByPk(id);
+    const user = await UserModel.findOne({
+      include : [
+        {
+          model : model.identitas,
+          require : true,
+          as : 'identitas'
+        }
+      ],
+      where : {
+        id : req.id
+      }
+    });
 
     if (user === null) {
       res.status(404).json({
@@ -211,6 +249,59 @@ async function updatePassword(req, res) {
       msg: "Ada kesalahan",
       err: err,
     });
+  }
+}
+
+async function index(req,res){
+  try {
+    let {keyword,page,pageSize,orderBy,sortBy,pageActive} = req.query;
+
+    const user = await UserModel.findAndCountAll({
+      attributes : ["id",["name","nama"],"email","status","jenisKelamin"],
+      where : {
+        ...(keyword !== undefined && {
+          [Op.or] : [
+            {
+              name : {
+                [Op.like] : `%${keyword}%`
+              }
+            },
+            {
+              email : {
+                [Op.like] : `%${keyword}%`
+              }
+            },
+            {
+              jenisKelamin : {
+                [Op.like] : `%${keyword}%`
+              }
+            }
+          ]
+        } )
+      },
+      order : [[sortBy,orderBy]],
+      offset : page,
+      limit : pageSize
+    })
+
+    return res.json({
+      status : "Success",
+      msg : "Daftar user ditemukan",
+      data : user,
+      pagination : {
+        page : pageActive,
+        nextPage : page + 1 ,
+        previousPage : page - 1,
+        pageSize : pageSize,
+        jumlah : user.row.length,
+        total : user.count
+      }
+    })
+  } catch (error) {
+    return res.status(403).json({
+      status : "fail",
+      msg : "ada kesalahan"
+    })
   }
 }
 module.exports = {

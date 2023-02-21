@@ -8,6 +8,7 @@ const produkValidator = require('../validator/produkValidator');
 const { register, login, lupaPassword, resetPassword } = require('../controllers/authControllers');
 const jwtValidateMiddleware = require('../middleware/jwtValidatemiddleware');
 const { createArtikel, getListArtikel, updateArtikel, deleteArtikel, createArtikelBulk, createArtikelmulti, deleteArtikelMulti } = require('../controllers/ArtikelContoller');
+const { getListNilai } = require('../controllers/nilaiController');
 
 //auth
 router.post('/register',register)
@@ -42,6 +43,8 @@ router.put('/artikel/update/:id',updateArtikel)
 router.delete('/artikel/delete/:id',deleteArtikel)
 router.delete('/delete/multi',deleteArtikelMulti)
 
+//nilai
+router.get('/nilai/list',getListNilai)
 
 
 module.exports = router
